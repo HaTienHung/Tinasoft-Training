@@ -15,11 +15,11 @@ class UserSeeder extends Seeder
     {
         //
         DB::table('users')->insert([
-            ['id' => 21, 'name' => 'hungha2002', 'email' => 'hungtmt01@gmail.com', 'password' => '123456', 'phone_number' => '0393460259', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
-            ['id' => 22, 'name' => 'hungha2909', 'email' => 'hungtmt02@gmail.com', 'password' => '123456', 'phone_number' => '0393460259', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
-            ['id' => 23, 'name' => 'hungha2003', 'email' => 'hungtmt03@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
-            ['id' => 24, 'name' => 'hungha2004', 'email' => 'hungtmt04@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 1],
-            ['id' => 25, 'name' => 'hungha2004', 'email' => 'hungtmt05@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 1],
+            ['id' => 1, 'name' => 'hungha2002', 'email' => 'hungtmt01@gmail.com', 'password' => '123456', 'phone_number' => '0393460259', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
+            ['id' => 2, 'name' => 'hungha2909', 'email' => 'hungtmt02@gmail.com', 'password' => '123456', 'phone_number' => '0393460259', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
+            ['id' => 3, 'name' => 'hungha2003', 'email' => 'hungtmt03@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 2],
+            ['id' => 4, 'name' => 'hungha2004', 'email' => 'hungtmt04@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 1],
+            ['id' => 5, 'name' => 'hungha2004', 'email' => 'hungtmt05@gmail.com', 'password' => '123456', 'phone_number' => '0123456789', 'created_at' => '2023-12-25 15:47:05', 'role_id' => 1],
         ]);
     }
 }

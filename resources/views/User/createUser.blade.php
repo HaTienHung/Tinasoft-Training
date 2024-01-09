@@ -9,15 +9,6 @@
 
 <body>
   <section class="bg-gray-50 dark:bg-gray-900">
-    <div>
-      <div>
-        @if(session()->has('success'))
-        <div>
-          toastr()->success();
-          toastr()->error();
-        </div>
-        @endif
-      </div>
     </div>
     <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
       <a href="{{route('dashboard')}}" class=" text-white bg-primary-600 hover:bg-primary-700  focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 absolute left-2 top-2 shadow-md">Back</a>
@@ -50,9 +41,9 @@
             </div>
             <div class="dark:text-white">
               <label for="role_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Type</label>
-              <input type="radio" value="1" name="role_id"> User
+              <input required type="radio" value="1" name="role_id"> User
               @can('add-instructor-list')
-              <input type="radio" value="2" name="role_id" class="ml-6"> Instructor
+              <input required type="radio" value="2" name="role_id" class="ml-6"> Instructor
               @endcan
             </div>
             <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Add</button>

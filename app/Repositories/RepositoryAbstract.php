@@ -2,10 +2,13 @@
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\Class_;
+use App\Models\Classes;
+use App\Models\ClassUser;
 use App\Models\User;
+use Storage;
 
-class AuthRepository implements AuthRepositoryInterface
+class RepositoryAbstract implements RepositoryInterface
 {
     // public function register(array $userData)
     // {
@@ -43,6 +46,9 @@ class AuthRepository implements AuthRepositoryInterface
             // Ví dụ: return một thông báo lỗi hoặc thực hiện một hành động khác
             return response()->json(['error' => 'User not found'], 404);
         }
+        if ($user->avatar && $user->avatar !== 'default-avatar.png') {
+            Storage::delete('public/' . $user->avatar);
+        }
 
         // Trả về người dùng sau khi đã được sửa
         return $user->update($data);
@@ -57,24 +63,50 @@ class AuthRepository implements AuthRepositoryInterface
             // Ví dụ: return một thông báo lỗi hoặc thực hiện một hành động khác
             return response()->json(['error' => 'User not found'], 404);
         }
+        if ($user->avatar && $user->avatar !== 'default-avatar.png') {
+            // Xoá file ảnh nếu tồn tại
+            Storage::delete('public/' . $user->avatar);
+        }
 
         // Xoá người dùng
         return $user->delete($id);
     }
-    // public function getAllUsers()
-    // {
-    //     return $this->getUsersByRole(1);
-    // }
+    //Handle class
+    public function getAll()
+    {
+        return Classes::all();
+    }
+    public function destroyClassByID(int $id)
+    {
+        $class = Classes::find($id);
+        if (!$class) {
+            // Xử lý khi lớp không tồn tại
+            // Ví dụ: return một thông báo lỗi hoặc thực hiện một hành động khác
+            return response()->json(['error' => 'Class not found'], 404);
+        }
 
-    // public function getAllInstructors()
-    // {
-    //     // Giả sử role_id cho instructor là 2
-    //     return $this->getUsersByRole(2);
-    // }
-
-    // public function getAllAdmins()
-    // {
-    //     // Giả sử role_id cho admin là 3
-    //     return $this->getUsersByRole(3);
-    // }
+        //Xoá lớp
+        return $class->delete($id);
+    }
+    public function getClassInfo(int $id)
+    {
+        $class = Classes::find($id);
+        if (!$class) {
+            // Xử lý khi lớp không tồn tại
+            // Ví dụ: return một thông báo lỗi hoặc thực hiện một hành động khác
+            return response()->json(['error' => 'Class not found'], 404);
+        }
+        $enrolledUsers = $class->enrolledUsers()->get();
+        return $enrolledUsers;
+    }
+    //Class User
+    public function createClassUser(array $data)
+    {
+        return ClassUser::create($data);
+    }
+    public function removeClassUser(int $user_id, int $class_id)
+    {
+        $class = Classes::find($class_id);
+        return $class->enrolledUsers()->wherePivot('class_id', $class_id)->detach($user_id);
+    }
 }

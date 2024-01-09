@@ -13,11 +13,6 @@ class UserPolicy
     {
         //
     }
-    public function viewUserList(User $user)
-    {
-        return in_array($user->role->role_name, ['user', 'instructor', 'admin']);
-    }
-
     public function viewInstructorList(User $user)
     {
         return $user->role->role_name === 'admin';

@@ -3,53 +3,57 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Providers\RouteServiceProvider;
 use App\Models\User;
-use App\Repositories\AuthRepositoryInterface;
+use App\Repositories\RepositoryInterface;
 use Auth;
 
 class AuthController extends Controller
 {
     //
-    private $authRepository;
+    private $abstractRepository;
 
-    public function __construct(AuthRepositoryInterface $authRepository)
+    public function __construct(RepositoryInterface $abstractRepository)
     {
-        $this->authRepository = $authRepository;
+        $this->abstractRepository = $abstractRepository;
     }
 
-    public function register_form()
+    protected function handleRequest(Request $request)
     {
-        return view('/register');
+        $userData = $request->validate([
+            'name' => 'required|string|between:5,50',
+            'email' => 'required|email|between:5,50',
+            'password' => 'required|string|between:6,50',
+            'phone_number' => 'required|string|max:10',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra file ảnh
+            'role_id' => 'nullable|integer'
+        ]);
+        $userData['role_id'] = $request->has('role_id') ? $userData['role_id'] : 1;
+        // Lưu avatar
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $avatarPath = $avatar->store('avatars', 'public'); // Lưu vào thư mục 'avatars' trong storage/app/public
+            $userData['avatar'] = $avatarPath;
+        } else {
+            // Nếu người dùng không tải lên ảnh, sử dụng ảnh mặc định
+            $userData['avatar'] = 'default-avatar.png'; // Thay đổi thành tên file ảnh mặc định thực tế
+        }
+        return $userData;
     }
 
     public function register(Request $request)
     {
         try {
-            $userData = $request->validate([
-                'name' => 'required|string|between:5,50',
-                'email' => 'required|email|between:5,50',
-                'password' => 'required|string|between:6,50',
-                'phone_number' => 'required|string|max:10',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra file ảnh hợp lệ
-            ]);
-            // Lưu avatar
-            if ($request->hasFile('avatar')) {
-                $avatar = $request->file('avatar');
-                $avatarPath = $avatar->store('avatars', 'public'); // Lưu vào thư mục 'avatars' trong storage/app/public
-                $userData['avatar'] = $avatarPath;
-            } else {
-                // Nếu người dùng không tải lên ảnh, sử dụng ảnh mặc định
-                $userData['avatar'] = 'default-avatar.png'; // Thay đổi thành tên file ảnh mặc định thực tế
-            }
+            $userData = $this->handleRequest($request);
 
             $user = User::create($userData);
 
-            return response()->json(['message' => 'Success'], 201);
+            // return response()->json(['message' => 'Success'], 201);
             //return respones()->json($user,201);
+            return redirect('/login')->with('success', 'Register succesful');
         } catch (\Exception $e) {
             // Xử lý lỗi, bạn có thể log lỗi hoặc trả về thông báo lỗi cụ thể
-            return response()->json(['message' => 'Fail', 'error' => $e->getMessage()], 400);
+            // return response()->json(['message' => 'Fail', 'error' => $e->getMessage()], 400);
+            return redirect('/register')->with('error', 'Failed to register user. Please review the provided information and try again.');
         }
     }
 
@@ -61,9 +65,9 @@ class AuthController extends Controller
         ]);
 
         if (auth()->attempt($credentials)) {
-            return redirect('/dashboard');
+            return redirect('/dashboard')->with('success', 'Login succescful');
         } else {
-            return redirect('/login');
+            return redirect('/login')->with('error', 'Login unsuccessful. Double-check your credentials and try again.');
         }
         // return ['status' => 'error', 'message' => 'Invalid credentials'];
 
@@ -81,7 +85,7 @@ class AuthController extends Controller
             abort(404);
         }
 
-        $allUsers = $this->authRepository->getUsersByRole($role_id);
+        $allUsers = $this->abstractRepository->getUsersByRole($role_id);
 
         $response = [
             'count' => count($allUsers),
@@ -89,93 +93,48 @@ class AuthController extends Controller
         ];
 
         // return response()->json($response, 200);
-        return view('userList', ['allUsers' => $allUsers, 'role_name' => $role_name]);
+        return view('User.userList', ['allUsers' => $allUsers, 'role_name' => $role_name]);
     }
+
     public function createUser(Request $request)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|between:5,50',
-                'email' => 'required|email|between:5,50',
-                'password' => 'required|string|between:6,50',
-                'phone_number' => 'required|string|max:10',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra file ảnh hợp lệ
-                'role_id' => 'required',
-            ]);
-            // Lưu avatar
-            if ($request->hasFile('avatar')) {
-                $avatar = $request->file('avatar');
-                $avatarPath = $avatar->store('avatars', 'public'); // Lưu vào thư mục 'avatars' trong storage/app/public
-                $userData['avatar'] = $avatarPath;
-            } else {
-                // Nếu người dùng không tải lên ảnh, sử dụng ảnh mặc định
-                $userData['avatar'] = 'default-avatar.png'; // Thay đổi thành tên file ảnh mặc định thực tế
-            }
+            $userData = $this->handleRequest($request);
 
-            $user = $this->authRepository->createUser($data);
+            $user = $this->abstractRepository->createUser($userData);
 
             // Thêm thành công, bạn có thể thực hiện các hành động khác ở đây.
-            return redirect('/login')->with('success', 'Add user successful');
+            return redirect('/dashboard')->with('success', 'Add user successful');
         } catch (\Exception $e) {
             // Xử lý khi có lỗi, bạn có thể trả về thông báo lỗi hoặc thực hiện các hành động khác
-            return redirect('/login')->with('error', 'Failed to add user. Please review the provided information and try again.');
+            return redirect('/dashboard')->with('error', 'Failed to add user. Please review the provided information and try again.');
         }
     }
+
     public function editUserByID(Request $request, int $id)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|between:5,50',
-                'email' => 'required|email|between:5,50',
-                'password' => 'required|string|between:6,50',
-                'phone_number' => 'required|string|max:10',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra file ảnh hợp lệ
-                'role_id' => 'required',
-            ]);
-            // Lưu avatar
-            if ($request->hasFile('avatar')) {
-                $avatar = $request->file('avatar');
-                $avatarPath = $avatar->store('avatars', 'public'); // Lưu vào thư mục 'avatars' trong storage/app/public
-                $userData['avatar'] = $avatarPath;
-            } else {
-                // Nếu người dùng không tải lên ảnh, sử dụng ảnh mặc định
-                $userData['avatar'] = 'default-avatar.png'; // Thay đổi thành tên file ảnh mặc định thực tế
-            }
-            $user = $this->authRepository->editUserByID($id, $data);
+            $userData = $this->handleRequest($request);
+            $user = $this->abstractRepository->editUserByID($id, $userData);
             return redirect('/dashboard')->with('success', 'Update user successful');
         } catch (\Exception $e) {
             return redirect('/dashboard')->with('error', 'Failed to update user. Please review the provided information and try again.');
         }
     }
+
     public function editView(User $user)
     {
-        return view('editUser', ['user' => $user]);
+        return view('User.editUser', ['user' => $user]);
     }
+
     public function destroyUserByID(int $id)
     {
         try {
-            $this->authRepository->destroyUserByID($id);
-            return redirect('/dashboard')->with('success', 'Delete user successful');
+            $this->abstractRepository->destroyUserByID($id);
+            return redirect(url()->previous())->with('success', 'Delete user successful');
         } catch (\Exception $e) {
-            return redirect('/dashboard')->with('error', 'Failed to delete user.');
+            return redirect(url()->previous())->with('error', 'Failed to delete user.');
         }
-    }
-    public function login_form()
-    {
-        return view('/login');
-    }
-
-    public function dashboard(Request $request)
-    {
-        // if (auth()->check()) {
-        //     $user = auth()->user();
-        //     // dd($user);
-        // } else {
-        //     // Người dùng chưa đăng nhập
-        //     return ['message' => 'fail'];
-        // }
-        // dd($request->user()->role_id);
-        return view('/dashboard');
     }
 
     public function logout(Request $request)

@@ -10,9 +10,9 @@
 <body>
   <section class="bg-gray-50">
     <div class="flex flex-col items-center justify-center px-6 md:h-screen">
-      <a href="{{route('dashboard')}}" class=" text-white bg-primary-600 hover:bg-primary-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 absolute left-2 top-2 shadow-md">Back</a>
+      <a href="{{route('class_list')}}" class=" text-white bg-primary-600 hover:bg-primary-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 absolute left-2 top-2 shadow-md">Back</a>
       <div class="bg-white px-8 py-8 rounded-lg shadow-lg sm:max-w-5xl">
-        <h1 class="text-2xl font-bold mb-4 text-primary-600 uppercase">{{$role_name}} LIST</h1>
+        <h1 class="text-2xl font-bold mb-4 text-primary-600 uppercase">Class Roste</h1>
         <table class="table-auto">
           <thead class="font-bold text-lg">
             <tr>
@@ -26,7 +26,7 @@
             </tr>
           </thead>
           <tbody>
-            @foreach($allUsers as $user)
+            @foreach($enrolledUsers as $user)
             <tr>
               <td class="px-4 py-2">{{$user->id}}</td>
               <td class="px-4 py-2 flex items-center">
@@ -35,9 +35,9 @@
               </td>
               <td class="px-4 py-2">{{$user->email}}</td>
               <td class="px-4 py-2">{{$user->phone_number}}</td>
-              @can('add-user-list')
               <td class="px-4 py-2">
                 <div class="flex justify-between items-center">
+                  @can('add-user-list')
                   <a href="{{route('edit_user',['user'=>$user])}}">
                     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64" height="64" viewBox="0 0 64 64" class="w-6 h-6 cursor-pointer">
                       <radialGradient id="XxuzckEKxQAhu215VR7vra_118958_gr1" cx="36" cy="32" r="26.875" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
@@ -94,11 +94,10 @@
                       <path fill="url(#XxuzckEKxQAhu215VR7vrg_118958_gr7)" d="M53.957,21.543l-11.5-11.5c-1.355-1.355-3.559-1.355-4.914,0l-3.5,3.5 c-1.354,1.354-1.354,3.56,0,4.914l11.5,11.5c0.678,0.678,1.567,1.017,2.457,1.017s1.779-0.339,2.457-1.017l3.5-3.5 C55.312,25.103,55.312,22.897,53.957,21.543z"></path>
                     </svg>
                   </a>
-                  <form action="{{route('delete_user',['id'=>$user->id])}}" method="POST" id="deleteForm">
+                  <form action="{{route('delete_class_user',['user_id'=>$user->id,'class_id'=>$class_id])}}" method="POST" class="deleteForm">
                     @csrf
                     @method('delete')
-                    <input type="submit" value="delete" class="hidden">
-                    <svg id="deleteSvg" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64" height="64" viewBox="0 0 64 64" class="w-6 h-6 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64" height="64" viewBox="0 0 64 64" class="w-6 h-6 cursor-pointer deleteButton">
                       <radialGradient id="SrYuS0MYDGH9m0SRC6_noa_Pvblw74eluzR_gr1" cx="31.417" cy="-1098.083" r="28.77" gradientTransform="translate(0 1128)" gradientUnits="userSpaceOnUse">
                         <stop offset="0" stop-color="#f4e09d"></stop>
                         <stop offset=".226" stop-color="#f8e8b5"></stop>
@@ -144,9 +143,9 @@
                       </g>
                     </svg>
                   </form>
+                  @endcan
                 </div>
               </td>
-              @endcan
             </tr>
             @endforeach
           </tbody>
@@ -155,8 +154,10 @@
     </div>
   </section>
   <script>
-    document.getElementById('deleteSvg').addEventListener('click', function() {
-      document.getElementById('deleteForm').submit();
+    document.querySelectorAll('.deleteButton').forEach(function(button) {
+      button.addEventListener('click', function() {
+        button.closest('form.deleteForm').submit();
+      });
     });
   </script>
 </body>
